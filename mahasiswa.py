@@ -2,14 +2,14 @@ import csv
 import io
 import pymysql
 from html import escape
-from flask import Flask, flash, make_response, redirect, render_template_string, request, url_for
+from flask import Blueprint, flash, make_response, redirect, render_template_string, request, url_for
+from login import login_required
 
 
 # ============================================================
-# Flask initialization
+# Blueprint definition
 # ============================================================
-app = Flask(__name__)
-app.secret_key = "2512500774_secret_key"
+mahasiswa_bp = Blueprint("mahasiswa", __name__, url_prefix="/mahasiswa")
 
 
 # ============================================================
@@ -217,6 +217,12 @@ HTML_INDEX = """
 </head>
 <body class="bg-light">
 <div class="container mt-4 mb-5">
+    <nav class="nav nav-pills mb-4">
+        <a class="nav-link" href="{{ url_for('krs.index') }}">KRS</a>
+        <a class="nav-link" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
+        <a class="nav-link" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
+        <a class="nav-link text-danger ms-auto" href="{{ url_for('login.logout') }}">Logout</a>
+    </nav>
     <h3>Form Data Mahasiswa - Flask dan MySQL</h3>
     <p class="text-muted">
         CRUD tabel Mahasiswa menggunakan primary key NIM.
@@ -233,7 +239,7 @@ HTML_INDEX = """
     <div class="card mb-3">
         <div class="card-header bg-primary text-white">Input Data Mahasiswa</div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('simpan') }}">
+            <form method="POST" action="{{ url_for('mahasiswa.simpan') }}">
                 <div class="row">
                     <div class="col-md-3 mb-2">
                         <label>NIM</label>
@@ -260,27 +266,27 @@ HTML_INDEX = """
                 <div class="row">
                     <div class="col-md-12 mb-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">Simpan</button>
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Reset</a>
+                        <a href="{{ url_for('mahasiswa.index') }}" class="btn btn-secondary">Reset</a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <form method="GET" action="{{ url_for('index') }}" class="mb-3">
+    <form method="GET" action="{{ url_for('mahasiswa.index') }}" class="mb-3">
         <div class="input-group">
             <input type="text" name="keyword" class="form-control"
                    placeholder="Cari NIM, nama, jurusan, atau fakultas"
                    value="{{ keyword }}">
             <button class="btn btn-success" type="submit">Cari</button>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
+            <a href="{{ url_for('mahasiswa.index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
         </div>
     </form>
 
     <div class="mb-3">
-        <a href="{{ url_for('cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
-        <a href="{{ url_for('cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
-        <a href="{{ url_for('cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
+        <a href="{{ url_for('mahasiswa.cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
+        <a href="{{ url_for('mahasiswa.cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
+        <a href="{{ url_for('mahasiswa.cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
     </div>
 
     <div class="card mb-3">
@@ -306,8 +312,8 @@ HTML_INDEX = """
                         <td>{{ row.jurusan }}</td>
                         <td>{{ row.fakultas }}</td>
                         <td>
-                            <a href="{{ url_for('edit', nim=row.nim) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{{ url_for('hapus', nim=row.nim) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data mahasiswa ini?')">Hapus</a>
+                            <a href="{{ url_for('mahasiswa.edit', nim=row.nim) }}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{{ url_for('mahasiswa.hapus', nim=row.nim) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data mahasiswa ini?')">Hapus</a>
                         </td>
                     </tr>
                     {% else %}
@@ -348,7 +354,7 @@ HTML_EDIT = """
     <div class="card">
         <div class="card-header bg-warning">Form Edit Mahasiswa</div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('update', old_nim=old.nim) }}">
+            <form method="POST" action="{{ url_for('mahasiswa.update', old_nim=old.nim) }}">
                 <div class="row">
                     <div class="col-md-3 mb-2">
                         <label>NIM</label>
@@ -373,7 +379,7 @@ HTML_EDIT = """
                 </div>
 
                 <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
+                <a href="{{ url_for('mahasiswa.index') }}" class="btn btn-secondary">Kembali</a>
             </form>
         </div>
     </div>
@@ -387,7 +393,8 @@ HTML_EDIT = """
 # ROUTES
 # ============================================================
 
-@app.route("/")
+@mahasiswa_bp.route("/")
+@login_required
 def index():
     keyword = request.args.get("keyword", "")
     data = ambil_mahasiswa(keyword)
@@ -398,7 +405,8 @@ def index():
     )
 
 
-@app.route("/cetak_csv")
+@mahasiswa_bp.route("/cetak_csv")
+@login_required
 def cetak_csv():
     keyword = request.args.get("keyword", "")
     rows = ambil_mahasiswa(keyword)
@@ -416,7 +424,8 @@ def cetak_csv():
     return response
 
 
-@app.route("/cetak_excel")
+@mahasiswa_bp.route("/cetak_excel")
+@login_required
 def cetak_excel():
     keyword = request.args.get("keyword", "")
     rows = ambil_mahasiswa(keyword)
@@ -457,7 +466,8 @@ def cetak_excel():
     return response
 
 
-@app.route("/cetak_pdf")
+@mahasiswa_bp.route("/cetak_pdf")
+@login_required
 def cetak_pdf():
     keyword = request.args.get("keyword", "")
     rows = ambil_mahasiswa(keyword)
@@ -469,13 +479,14 @@ def cetak_pdf():
     return response
 
 
-@app.route("/simpan", methods=["POST"])
+@mahasiswa_bp.route("/simpan", methods=["POST"])
+@login_required
 def simpan():
     try:
         nim = int(request.form["nim"])
     except ValueError:
         flash("NIM harus berupa angka")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
 
     nama = request.form["nama"].strip()
     jurusan = request.form["jurusan"].strip()
@@ -483,13 +494,13 @@ def simpan():
 
     if not nama:
         flash("Nama tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
     if not jurusan:
         flash("Jurusan tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
     if not fakultas:
         flash("Fakultas tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -510,15 +521,16 @@ def simpan():
 
     cursor.close()
     conn.close()
-    return redirect(url_for("index"))
+    return redirect(url_for("mahasiswa.index"))
 
 
-@app.route("/edit/<int:nim>")
+@mahasiswa_bp.route("/edit/<int:nim>")
+@login_required
 def edit(nim):
     data = ambil_mahasiswa_by_nim(nim)
     if data is None:
         flash("Data mahasiswa tidak ditemukan")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
 
     old = {"nim": nim}
     return render_template_string(
@@ -528,13 +540,14 @@ def edit(nim):
     )
 
 
-@app.route("/update/<int:old_nim>", methods=["POST"])
+@mahasiswa_bp.route("/update/<int:old_nim>", methods=["POST"])
+@login_required
 def update(old_nim):
     try:
         nim = int(request.form["nim"])
     except ValueError:
         flash("NIM harus berupa angka")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
 
     nama = request.form["nama"].strip()
     jurusan = request.form["jurusan"].strip()
@@ -542,13 +555,13 @@ def update(old_nim):
 
     if not nama:
         flash("Nama tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
     if not jurusan:
         flash("Jurusan tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
     if not fakultas:
         flash("Fakultas tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("mahasiswa.index"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -573,10 +586,11 @@ def update(old_nim):
 
     cursor.close()
     conn.close()
-    return redirect(url_for("index"))
+    return redirect(url_for("mahasiswa.index"))
 
 
-@app.route("/hapus/<int:nim>")
+@mahasiswa_bp.route("/hapus/<int:nim>")
+@login_required
 def hapus(nim):
     conn = get_connection()
     cursor = conn.cursor()
@@ -591,13 +605,6 @@ def hapus(nim):
     cursor.close()
     conn.close()
     flash("Data mahasiswa berhasil dihapus")
-    return redirect(url_for("index"))
+    return redirect(url_for("mahasiswa.index"))
 
 
-# ============================================================
-# PROGRAM UTAMA
-# ============================================================
-
-if __name__ == "__main__":
-    buat_tabel()
-    app.run(debug=True, port=5003)

@@ -2,14 +2,14 @@ import csv
 import io
 import pymysql
 from html import escape
-from flask import Flask, flash, make_response, redirect, render_template_string, request, url_for
+from flask import Blueprint, flash, make_response, redirect, render_template_string, request, url_for
+from login import login_required
 
 
 # ============================================================
-# Flask initialization
+# Blueprint definition
 # ============================================================
-app = Flask(__name__)
-app.secret_key = "2512500774_secret_key"
+matakuliah_bp = Blueprint("matakuliah", __name__, url_prefix="/matakuliah")
 
 
 # ============================================================
@@ -233,6 +233,12 @@ HTML_INDEX = """
 </head>
 <body class="bg-light">
 <div class="container mt-4 mb-5">
+    <nav class="nav nav-pills mb-4">
+        <a class="nav-link" href="{{ url_for('krs.index') }}">KRS</a>
+        <a class="nav-link" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
+        <a class="nav-link" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
+        <a class="nav-link text-danger ms-auto" href="{{ url_for('login.logout') }}">Logout</a>
+    </nav>
     <h3>Form Data Mata Kuliah - Flask dan MySQL</h3>
     <p class="text-muted">
         CRUD tabel Matakuliah menggunakan primary key Kode MK.
@@ -249,7 +255,7 @@ HTML_INDEX = """
     <div class="card mb-3">
         <div class="card-header bg-primary text-white">Input Data Mata Kuliah</div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('simpan') }}">
+            <form method="POST" action="{{ url_for('matakuliah.simpan') }}">
                 <div class="row">
                     <div class="col-md-3 mb-2">
                         <label>Kode MK</label>
@@ -276,27 +282,27 @@ HTML_INDEX = """
                 <div class="row">
                     <div class="col-md-12 mb-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">Simpan</button>
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Reset</a>
+                        <a href="{{ url_for('matakuliah.index') }}" class="btn btn-secondary">Reset</a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <form method="GET" action="{{ url_for('index') }}" class="mb-3">
+    <form method="GET" action="{{ url_for('matakuliah.index') }}" class="mb-3">
         <div class="input-group">
             <input type="text" name="keyword" class="form-control"
                    placeholder="Cari Kode MK, nama MK, SKS, atau biaya"
                    value="{{ keyword }}">
             <button class="btn btn-success" type="submit">Cari</button>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
+            <a href="{{ url_for('matakuliah.index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
         </div>
     </form>
 
     <div class="mb-3">
-        <a href="{{ url_for('cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
-        <a href="{{ url_for('cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
-        <a href="{{ url_for('cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
+        <a href="{{ url_for('matakuliah.cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
+        <a href="{{ url_for('matakuliah.cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
+        <a href="{{ url_for('matakuliah.cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
     </div>
 
     <div class="card mb-3">
@@ -322,8 +328,8 @@ HTML_INDEX = """
                         <td>{{ row.sks }}</td>
                         <td>Rp {{ "{:,.0f}".format(row.biaya or 0) }}</td>
                         <td>
-                            <a href="{{ url_for('edit', kodemk=row.kodemk) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{{ url_for('hapus', kodemk=row.kodemk) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus matakuliah ini?')">Hapus</a>
+                            <a href="{{ url_for('matakuliah.edit', kodemk=row.kodemk) }}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{{ url_for('matakuliah.hapus', kodemk=row.kodemk) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus matakuliah ini?')">Hapus</a>
                         </td>
                     </tr>
                     {% else %}
@@ -364,7 +370,7 @@ HTML_EDIT = """
     <div class="card">
         <div class="card-header bg-warning">Form Edit Mata Kuliah</div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('update', old_kodemk=old.kodemk) }}">
+            <form method="POST" action="{{ url_for('matakuliah.update', old_kodemk=old.kodemk) }}">
                 <div class="row">
                     <div class="col-md-3 mb-2">
                         <label>Kode MK</label>
@@ -389,7 +395,7 @@ HTML_EDIT = """
                 </div>
 
                 <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
+                <a href="{{ url_for('matakuliah.index') }}" class="btn btn-secondary">Kembali</a>
             </form>
         </div>
     </div>
@@ -403,7 +409,8 @@ HTML_EDIT = """
 # ROUTES
 # ============================================================
 
-@app.route("/")
+@matakuliah_bp.route("/")
+@login_required
 def index():
     keyword = request.args.get("keyword", "")
     data = ambil_matakuliah(keyword)
@@ -414,7 +421,8 @@ def index():
     )
 
 
-@app.route("/cetak_csv")
+@matakuliah_bp.route("/cetak_csv")
+@login_required
 def cetak_csv():
     keyword = request.args.get("keyword", "")
     rows = ambil_matakuliah(keyword)
@@ -432,7 +440,8 @@ def cetak_csv():
     return response
 
 
-@app.route("/cetak_excel")
+@matakuliah_bp.route("/cetak_excel")
+@login_required
 def cetak_excel():
     keyword = request.args.get("keyword", "")
     rows = ambil_matakuliah(keyword)
@@ -474,7 +483,8 @@ def cetak_excel():
     return response
 
 
-@app.route("/cetak_pdf")
+@matakuliah_bp.route("/cetak_pdf")
+@login_required
 def cetak_pdf():
     keyword = request.args.get("keyword", "")
     rows = ambil_matakuliah(keyword)
@@ -486,7 +496,8 @@ def cetak_pdf():
     return response
 
 
-@app.route("/simpan", methods=["POST"])
+@matakuliah_bp.route("/simpan", methods=["POST"])
+@login_required
 def simpan():
     kodemk = request.form["kodemk"].strip()
     namamk = request.form["namamk"].strip()
@@ -494,26 +505,26 @@ def simpan():
         sks = int(request.form["sks"])
     except ValueError:
         flash("SKS harus berupa angka")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     try:
         biaya = float(request.form["biaya"])
     except ValueError:
         flash("Biaya harus berupa angka")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     if not kodemk:
         flash("Kode MK tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
     if not namamk:
         flash("Nama Mata Kuliah tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
     if sks <= 0:
         flash("SKS harus lebih besar dari 0")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
     if biaya < 0:
         flash("Biaya tidak boleh negatif")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -534,15 +545,16 @@ def simpan():
 
     cursor.close()
     conn.close()
-    return redirect(url_for("index"))
+    return redirect(url_for("matakuliah.index"))
 
 
-@app.route("/edit/<kodemk>")
+@matakuliah_bp.route("/edit/<kodemk>")
+@login_required
 def edit(kodemk):
     data = ambil_matakuliah_by_kodemk(kodemk)
     if data is None:
         flash("Data matakuliah tidak ditemukan")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     old = {"kodemk": kodemk}
     return render_template_string(
@@ -552,7 +564,8 @@ def edit(kodemk):
     )
 
 
-@app.route("/update/<old_kodemk>", methods=["POST"])
+@matakuliah_bp.route("/update/<old_kodemk>", methods=["POST"])
+@login_required
 def update(old_kodemk):
     kodemk = request.form["kodemk"].strip()
     namamk = request.form["namamk"].strip()
@@ -560,26 +573,26 @@ def update(old_kodemk):
         sks = int(request.form["sks"])
     except ValueError:
         flash("SKS harus berupa angka")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     try:
         biaya = float(request.form["biaya"])
     except ValueError:
         flash("Biaya harus berupa angka")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     if not kodemk:
         flash("Kode MK tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
     if not namamk:
         flash("Nama Mata Kuliah tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
     if sks <= 0:
         flash("SKS harus lebih besar dari 0")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
     if biaya < 0:
         flash("Biaya tidak boleh negatif")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -604,14 +617,15 @@ def update(old_kodemk):
 
     cursor.close()
     conn.close()
-    return redirect(url_for("index"))
+    return redirect(url_for("matakuliah.index"))
 
 
-@app.route("/hapus/<kodemk>")
+@matakuliah_bp.route("/hapus/<kodemk>")
+@login_required
 def hapus(kodemk):
     if cek_matakuliah_referensi(kodemk) > 0:
         flash("This course cannot be deleted because it is still referenced by KRS data.")
-        return redirect(url_for("index"))
+        return redirect(url_for("matakuliah.index"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -626,13 +640,6 @@ def hapus(kodemk):
     cursor.close()
     conn.close()
     flash("Data matakuliah berhasil dihapus")
-    return redirect(url_for("index"))
+    return redirect(url_for("matakuliah.index"))
 
 
-# ============================================================
-# PROGRAM UTAMA
-# ============================================================
-
-if __name__ == "__main__":
-    buat_tabel()
-    app.run(debug=True, port=5004)

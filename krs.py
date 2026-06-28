@@ -2,14 +2,14 @@ import csv
 import io
 import pymysql
 from html import escape
-from flask import Flask, flash, make_response, redirect, render_template_string, request, url_for
+from flask import Blueprint, flash, make_response, redirect, render_template_string, request, url_for
+from login import login_required
 
 
 # ============================================================
-# Flask initialization
+# Blueprint definition
 # ============================================================
-app = Flask(__name__)
-app.secret_key = "2512500774_secret_key"
+krs_bp = Blueprint("krs", __name__, url_prefix="/krs")
 
 
 # ============================================================
@@ -274,7 +274,13 @@ HTML_INDEX = """
           rel="stylesheet">
 </head>
 <body class="bg-light">
-<body class="container mt-4 mb-5">
+<div class="container mt-4 mb-5">
+    <nav class="nav nav-pills mb-4">
+        <a class="nav-link" href="{{ url_for('krs.index') }}">KRS</a>
+        <a class="nav-link" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
+        <a class="nav-link" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
+        <a class="nav-link text-danger ms-auto" href="{{ url_for('login.logout') }}">Logout</a>
+    </nav>
     <h3>Form Transaksi Kartu Rencana Studi - Flask dan MySQL</h3>
     <p class="text-muted">
         CRUD tabel KRS menggunakan primary key gabungan:
@@ -292,7 +298,7 @@ HTML_INDEX = """
     <div class="card mb-3">
         <div class="card-header bg-primary text-white">Input Data KRS</div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('simpan') }}">
+            <form method="POST" action="{{ url_for('krs.simpan') }}">
                 <div class="row">
 
                     <div class="col-md-3 mb-2">
@@ -338,27 +344,27 @@ HTML_INDEX = """
 
                     <div class="col-md-4 mb-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">Simpan</button>
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Reset</a>
+                        <a href="{{ url_for('krs.index') }}" class="btn btn-secondary">Reset</a>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <form method="GET" action="{{ url_for('index') }}" class="mb-3">
+    <form method="GET" action="{{ url_for('krs.index') }}" class="mb-3">
         <div class="input-group">
             <input type="text" name="keyword" class="form-control"
                    placeholder="Cari tahun ajar, semester, NIM, nama, kode MK, atau nama MK"
                    value="{{ keyword }}">
             <button class="btn btn-success" type="submit">Cari</button>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
+            <a href="{{ url_for('krs.index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
         </div>
     </form>
 
     <div class="mb-3">
-        <a href="{{ url_for('cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
-        <a href="{{ url_for('cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
-        <a href="{{ url_for('cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
+        <a href="{{ url_for('krs.cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
+        <a href="{{ url_for('krs.cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
+        <a href="{{ url_for('krs.cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
     </div>
 
     <div class="card mb-3">
@@ -395,14 +401,14 @@ HTML_INDEX = """
                     <td>{{ row.sks }}</td>
                     <td>Rp {{ "{:,.0f}".format(row.biaya or 0) }}</td>
                     <td>
-                        <a href="{{ url_for('edit',
+                        <a href="{{ url_for('krs.edit',
                             thn_ajar=row.thn_ajar,
                             semester=row.semester,
                             nim=row.nim,
                             kodemk=row.kodemk) }}"
                             class="btn btn-warning btn-sm">Edit</a>
 
-                        <a href="{{ url_for('hapus',
+                        <a href="{{ url_for('krs.hapus',
                             thn_ajar=row.thn_ajar,
                             semester=row.semester,
                             nim=row.nim,
@@ -456,7 +462,7 @@ HTML_EDIT = """
     <div class="card">
         <div class="card-header bg-warning">Form Edit KRS</div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('update',
+            <form method="POST" action="{{ url_for('krs.update',
                 old_thn_ajar=old.thn_ajar,
                 old_semester=old.semester,
                 old_nim=old.nim,
@@ -502,7 +508,7 @@ HTML_EDIT = """
                 </div>
 
                 <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ url_for('index') }}" class="btn btn-secondary">Kembali</a>
+                <a href="{{ url_for('krs.index') }}" class="btn btn-secondary">Kembali</a>
             </form>
             </div>
         </div>
@@ -516,7 +522,9 @@ HTML_EDIT = """
 # ROUTE HALAMAN UTAMA DAN PENCARIAN
 # ============================================================
 
-@app.route("/")
+@krs_bp.route("/")
+@login_required
+@login_required
 def index():
     keyword = request.args.get("keyword", "")
     data = ambil_data_krs(keyword)
@@ -539,7 +547,9 @@ def index():
 # CETAK DATA KRS KE CSV, EXCEL, DAN PDF
 # ============================================================
 
-@app.route("/cetak_csv")
+@krs_bp.route("/cetak_csv")
+@login_required
+@login_required
 def cetak_csv():
     keyword = request.args.get("keyword", "")
     rows = ambil_data_krs(keyword)
@@ -557,7 +567,9 @@ def cetak_csv():
     return response
 
 
-@app.route("/cetak_excel")
+@krs_bp.route("/cetak_excel")
+@login_required
+@login_required
 def cetak_excel():
     keyword = request.args.get("keyword", "")
     rows = ambil_data_krs(keyword)
@@ -604,7 +616,9 @@ def cetak_excel():
     return response
 
 
-@app.route("/cetak_pdf")
+@krs_bp.route("/cetak_pdf")
+@login_required
+@login_required
 def cetak_pdf():
     keyword = request.args.get("keyword", "")
     rows = ambil_data_krs(keyword)
@@ -620,13 +634,15 @@ def cetak_pdf():
 # SIMPAN DATA KRS
 # ============================================================
 
-@app.route("/simpan", methods=["POST"])
+@krs_bp.route("/simpan", methods=["POST"])
+@login_required
+@login_required
 def simpan():
     thn_ajar = int(request.form["thn_ajar"])
     semester = request.form["semester"].strip()
     if semester not in ("1", "2", "3"):
         flash("Semester tidak valid. Pilih 1=Ganjil, 2=Genap, atau 3=Pendek")
-        return redirect(url_for("index"))
+        return redirect(url_for("krs.index"))
     nim = int(request.form["nim"])
     kodemk = request.form["kodemk"].strip()
 
@@ -647,14 +663,16 @@ def simpan():
 
     cursor.close()
     conn.close()
-    return redirect(url_for("index"))
+    return redirect(url_for("krs.index"))
 
 
 # ============================================================
 # EDIT DATA KRS BERDASARKAN PRIMARY KEY GABUNGAN
 # ============================================================
 
-@app.route("/edit/<int:thn_ajar>/<semester>/<int:nim>/<kodemk>")
+@krs_bp.route("/edit/<int:thn_ajar>/<semester>/<int:nim>/<kodemk>")
+@login_required
+@login_required
 def edit(thn_ajar, semester, nim, kodemk):
     conn = get_connection()
     cursor = conn.cursor()
@@ -675,7 +693,7 @@ def edit(thn_ajar, semester, nim, kodemk):
 
     if data is None:
         flash("Data KRS tidak ditemukan")
-        return redirect(url_for("index"))
+        return redirect(url_for("krs.index"))
 
     old = {
         "thn_ajar": thn_ajar,
@@ -697,14 +715,16 @@ def edit(thn_ajar, semester, nim, kodemk):
 # UPDATE DATA KRS BERDASARKAN PRIMARY KEY GABUNGAN
 # ============================================================
 
-@app.route("/update/<int:old_thn_ajar>/<old_semester>/<int:old_nim>/<old_kodemk>",
+@krs_bp.route("/update/<int:old_thn_ajar>/<old_semester>/<int:old_nim>/<old_kodemk>",
            methods=["POST"])
+@login_required
+@login_required
 def update(old_thn_ajar, old_semester, old_nim, old_kodemk):
     thn_ajar = int(request.form["thn_ajar"])
     semester = request.form["semester"].strip()
     if semester not in ("1", "2", "3"):
         flash("Semester tidak valid. Pilih 1=Ganjil, 2=Genap, atau 3=Pendek")
-        return redirect(url_for("index"))
+        return redirect(url_for("krs.index"))
     nim = int(request.form["nim"])
     kodemk = request.form["kodemk"].strip()
 
@@ -735,14 +755,16 @@ def update(old_thn_ajar, old_semester, old_nim, old_kodemk):
 
     cursor.close()
     conn.close()
-    return redirect(url_for("index"))
+    return redirect(url_for("krs.index"))
 
 
 # ============================================================
 # HAPUS DATA KRS BERDASARKAN PRIMARY KEY GABUNGAN
 # ============================================================
 
-@app.route("/hapus/<int:thn_ajar>/<semester>/<int:nim>/<kodemk>")
+@krs_bp.route("/hapus/<int:thn_ajar>/<semester>/<int:nim>/<kodemk>")
+@login_required
+@login_required
 def hapus(thn_ajar, semester, nim, kodemk):
     conn = get_connection()
     cursor = conn.cursor()
@@ -759,13 +781,9 @@ def hapus(thn_ajar, semester, nim, kodemk):
     cursor.close()
     conn.close()
     flash("Data KRS berhasil dihapus")
-    return redirect(url_for("index"))
+    return redirect(url_for("krs.index"))
 
 
 # ============================================================
 # PROGRAM UTAMA
 # ============================================================
-
-if __name__ == "__main__":
-    buat_tabel()
-    app.run(debug=True, port=5002)

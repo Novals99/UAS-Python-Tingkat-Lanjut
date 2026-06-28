@@ -1,12 +1,22 @@
 import pymysql
-from flask import Flask, flash, redirect, render_template_string, request, session, url_for
+from functools import wraps
+from flask import Blueprint, flash, redirect, render_template_string, request, session, url_for
 
 
 # ============================================================
-# Flask initialization
+# Blueprint definition
 # ============================================================
-app = Flask(__name__)
-app.secret_key = "2512500774_secret_key"
+login_bp = Blueprint("login", __name__)
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if not session.get("username"):
+            flash("Silakan login terlebih dahulu")
+            return redirect(url_for("login.index"))
+        return view(*args, **kwargs)
+    return wrapped_view
 
 
 # ============================================================
@@ -117,7 +127,7 @@ HTML_LOGIN = """
                         {% endif %}
                     {% endwith %}
 
-                    <form method="POST" action="{{ url_for('login') }}">
+                    <form method="POST" action="{{ url_for('login.login') }}">
                         <div class="mb-3">
                             <label class="form-label">Username</label>
                             <input type="text" name="username" class="form-control"
@@ -172,7 +182,7 @@ HTML_HOME = """
                     <div class="alert alert-success">
                         Anda sudah login sebagai <strong>{{ username }}</strong>.
                     </div>
-                    <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+                    <a href="{{ url_for('login.logout') }}" class="btn btn-danger">Logout</a>
                 </div>
             </div>
         </div>
@@ -187,50 +197,40 @@ HTML_HOME = """
 # ROUTES
 # ============================================================
 
-@app.route("/")
+@login_bp.route("/")
 def index():
     if session.get("username"):
-        return render_template_string(
-            HTML_HOME,
-            username=session.get("username"),
-        )
+        return redirect(url_for("krs.index"))
     return render_template_string(HTML_LOGIN)
 
 
-@app.route("/login", methods=["POST"])
+@login_bp.route("/login", methods=["POST"])
 def login():
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "").strip()
 
     if not username:
         flash("Username tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("login.index"))
 
     if not password:
         flash("Password tidak boleh kosong")
-        return redirect(url_for("index"))
+        return redirect(url_for("login.index"))
 
     akun = ambil_akun(username)
     if akun and akun.get("password") == password:
         session["username"] = akun.get("username")
         flash("Login berhasil")
-        return redirect(url_for("index"))
+        return redirect(url_for("krs.index"))
 
     flash("Username atau password salah")
-    return redirect(url_for("index"))
+    return redirect(url_for("login.index"))
 
 
-@app.route("/logout")
+@login_bp.route("/logout")
 def logout():
     session.clear()
     flash("Logout berhasil")
-    return redirect(url_for("index"))
+    return redirect(url_for("login.index"))
 
 
-# ============================================================
-# PROGRAM UTAMA
-# ============================================================
-
-if __name__ == "__main__":
-    buat_tabel()
-    app.run(debug=True, port=5005)
