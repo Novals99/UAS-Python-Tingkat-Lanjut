@@ -272,167 +272,157 @@ HTML_INDEX = """
     <title>Data KRS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="bg-light">
-<div class="container mt-4 mb-5">
-    <nav class="nav nav-pills mb-4">
-        <a class="nav-link" href="{{ url_for('krs.index') }}">KRS</a>
-        <a class="nav-link" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
-        <a class="nav-link" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
-        <a class="nav-link text-danger ms-auto" href="{{ url_for('login.logout') }}">Logout</a>
-    </nav>
-    <h3>Form Transaksi Kartu Rencana Studi - Flask dan MySQL</h3>
-    <p class="text-muted">
-        CRUD tabel KRS menggunakan primary key gabungan:
-        thn_ajar, semester, nim, dan kodemk.
-    </p>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for msg in messages %}
-                <div class="alert alert-info">{{ msg }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div class="card mb-3">
-        <div class="card-header bg-primary text-white">Input Data KRS</div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('krs.simpan') }}">
-                <div class="row">
-
-                    <div class="col-md-3 mb-2">
-                        <label>Tahun Ajar</label>
-                        <input type="number" name="thn_ajar" class="form-control"
-                               placeholder="2025" required>
+<body class="bg-soft">
+<div class="app-shell">
+    <div class="container">
+        <div class="page-card card mb-4">
+            <div class="card-body">
+                <div class="page-header">
+                    <div>
+                        <span class="badge rounded-pill bg-primary text-white">KRS</span>
+                        <h1 class="page-title">Kartu Rencana Studi</h1>
+                        <p class="page-subtitle">CRUD KRS menggunakan kombinasi Tahun Ajar, Semester, NIM, dan Kode MK.</p>
                     </div>
-
-                    <div class="col-md-3 mb-2">
-                        <label>Semester</label>
-                        <select name="semester" class="form-select" required>
-                            <option value="">-- Pilih Semester --</option>
-                            <option value="1">1 - Ganjil</option>
-                            <option value="2">2 - Genap</option>
-                            <option value="3">3 - Pendek</option>
-                                                    </select>
-                    </div>
-
-                    <div class="col-md-6 mb-2">
-                        <label>Mahasiswa</label>
-                        <select name="nim" class="form-select" required>
-                            <option value="">-- Pilih Mahasiswa --</option>
-                            {% for m in mahasiswa %}
-                                <option value="{{ m.nim }}">{{ m.nim }} - {{ m.nama }} - {{ m.jurusan }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <a href="{{ url_for('login.logout') }}" class="btn btn-outline-danger">Logout</a>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-8 mb-2">
-                        <label>Matakuliah</label>
-                        <select name="kodemk" class="form-select" required>
-                            <option value="">-- Pilih Matakuliah --</option>
-                            {% for mk in matakuliah %}
-                                <option value="{{ mk.kodemk }}">
-                                    {{ mk.kodemk }} - {{ mk.namamk }} - {{ mk.sks }} SKS -
-                                    Rp {{ "{:,.0f}".format(mk.biaya or 0) }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="col-md-4 mb-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">Simpan</button>
-                        <a href="{{ url_for('krs.index') }}" class="btn btn-secondary">Reset</a>
-                    </div>
+                <div class="nav nav-pills mt-4">
+                    <a class="nav-link {% if request.path.startswith('/krs') %}active{% endif %}" href="{{ url_for('krs.index') }}">KRS</a>
+                    <a class="nav-link {% if request.path.startswith('/mahasiswa') %}active{% endif %}" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
+                    <a class="nav-link {% if request.path.startswith('/matakuliah') %}active{% endif %}" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <form method="GET" action="{{ url_for('krs.index') }}" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="keyword" class="form-control"
-                   placeholder="Cari tahun ajar, semester, NIM, nama, kode MK, atau nama MK"
-                   value="{{ keyword }}">
-            <button class="btn btn-success" type="submit">Cari</button>
-            <a href="{{ url_for('krs.index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
-        </div>
-    </form>
-
-    <div class="mb-3">
-        <a href="{{ url_for('krs.cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
-        <a href="{{ url_for('krs.cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
-        <a href="{{ url_for('krs.cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
-    </div>
-
-    <div class="card mb-3">
-        <div class="card-header bg-dark text-white">Daftar KRS</div>
-        <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-dark">
-                    <tr>
-                                        <th>No</th>
-                    <th>Tahun Ajar</th>
-                    <th>Semester</th>
-                    <th>NIM</th>
-                    <th>Nama</th>
-                    <th>Jurusan</th>
-                    <th>Kode MK</th>
-                    <th>Nama MK</th>
-                    <th>SKS</th>
-                    <th>Biaya</th>
-                    <th width="160">Aksi</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for row in data %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ row.thn_ajar }}</td>
-                    <td>{{ label_semester(row.semester) }}</td>
-                    <td>{{ row.nim }}</td>
-                    <td>{{ row.nama }}</td>
-                    <td>{{ row.jurusan }}</td>
-                    <td>{{ row.kodemk }}</td>
-                    <td>{{ row.namamk }}</td>
-                    <td>{{ row.sks }}</td>
-                    <td>Rp {{ "{:,.0f}".format(row.biaya or 0) }}</td>
-                    <td>
-                        <a href="{{ url_for('krs.edit',
-                            thn_ajar=row.thn_ajar,
-                            semester=row.semester,
-                            nim=row.nim,
-                            kodemk=row.kodemk) }}"
-                            class="btn btn-warning btn-sm">Edit</a>
-
-                        <a href="{{ url_for('krs.hapus',
-                            thn_ajar=row.thn_ajar,
-                            semester=row.semester,
-                            nim=row.nim,
-                            kodemk=row.kodemk) }}"
-                            class="btn btn-danger btn-sm"
-                            onclick="return confirm('Yakin ingin menghapus data KRS ini?')">Hapus</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="11" class="text-center">Data KRS belum tersedia</td>
-                </tr>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-info">{{ msg }}</div>
                 {% endfor %}
-            </tbody>
+            {% endif %}
+        {% endwith %}
 
-            <tfoot>
-                <tr class="table-secondary">
-                    <th colspan="8" class="text-end">Total</th>
-                    <th>{{ total_sks }}</th>
-                    <th>Rp {{ "{:,.0f}".format(total_biaya) }}</th>
-                    <th></th>
-                </tr>
-            </tfoot>
-        </table>
+        <div class="card form-card mb-4">
+            <div class="card-header">Input Data KRS</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('krs.simpan') }}">
+                    <div class="row gx-3 gy-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tahun Ajar</label>
+                            <input type="number" name="thn_ajar" class="form-control" placeholder="2025" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Semester</label>
+                            <select name="semester" class="form-select" required>
+                                <option value="">-- Pilih Semester --</option>
+                                <option value="1">1 - Ganjil</option>
+                                <option value="2">2 - Genap</option>
+                                <option value="3">3 - Pendek</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mahasiswa</label>
+                            <select name="nim" class="form-select" required>
+                                <option value="">-- Pilih Mahasiswa --</option>
+                                {% for m in mahasiswa %}
+                                    <option value="{{ m.nim }}">{{ m.nim }} - {{ m.nama }} - {{ m.jurusan }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label">Matakuliah</label>
+                            <select name="kodemk" class="form-select" required>
+                                <option value="">-- Pilih Matakuliah --</option>
+                                {% for mk in matakuliah %}
+                                    <option value="{{ mk.kodemk }}">{{ mk.kodemk }} - {{ mk.namamk }} - {{ mk.sks }} SKS - Rp {{ "{:,.0f}".format(mk.biaya or 0) }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end justify-content-end gap-2">
+                            <a href="{{ url_for('krs.index') }}" class="btn btn-outline-secondary">Reset</a>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card search-card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('krs.index') }}" class="row gx-3 gy-3 align-items-center">
+                    <div class="col-md-8">
+                        <input type="text" name="keyword" class="form-control" placeholder="Cari tahun ajar, semester, NIM, nama, kode MK, atau nama MK" value="{{ keyword }}">
+                    </div>
+                    <div class="col-md-4 d-flex flex-wrap gap-2">
+                        <button class="btn btn-success flex-grow-1" type="submit">Cari</button>
+                        <a href="{{ url_for('krs.index') }}" class="btn btn-outline-secondary flex-grow-1">Tampil Semua</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <a href="{{ url_for('krs.cetak_pdf', keyword=keyword) }}" class="btn btn-danger">Cetak PDF</a>
+            <a href="{{ url_for('krs.cetak_excel', keyword=keyword) }}" class="btn btn-success">Cetak Excel</a>
+            <a href="{{ url_for('krs.cetak_csv', keyword=keyword) }}" class="btn btn-outline-secondary">Cetak CSV</a>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-header">Daftar KRS</div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>No</th>
+                            <th>Tahun Ajar</th>
+                            <th>Semester</th>
+                            <th>NIM</th>
+                            <th>Nama</th>
+                            <th>Jurusan</th>
+                            <th>Kode MK</th>
+                            <th>Nama MK</th>
+                            <th>SKS</th>
+                            <th>Biaya</th>
+                            <th width="160">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ row.thn_ajar }}</td>
+                            <td>{{ label_semester(row.semester) }}</td>
+                            <td>{{ row.nim }}</td>
+                            <td>{{ row.nama }}</td>
+                            <td>{{ row.jurusan }}</td>
+                            <td>{{ row.kodemk }}</td>
+                            <td>{{ row.namamk }}</td>
+                            <td>{{ row.sks }}</td>
+                            <td>Rp {{ "{:,.0f}".format(row.biaya or 0) }}</td>
+                            <td class="d-flex flex-wrap gap-2">
+                                <a href="{{ url_for('krs.edit', thn_ajar=row.thn_ajar, semester=row.semester, nim=row.nim, kodemk=row.kodemk) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{{ url_for('krs.hapus', thn_ajar=row.thn_ajar, semester=row.semester, nim=row.nim, kodemk=row.kodemk) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus data KRS ini?')">Hapus</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="11" class="text-center">Data KRS belum tersedia</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-secondary">
+                            <th colspan="8" class="text-end">Total</th>
+                            <th>{{ total_sks }}</th>
+                            <th>Rp {{ "{:,.0f}".format(total_biaya) }}</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 </body>
@@ -449,70 +439,69 @@ HTML_EDIT = """
     <title>Edit KRS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="bg-light">
-<div class="container mt-4">
-    <h3>Edit Data KRS</h3>
-
-    <div class="alert alert-warning">
-        Data KRS tidak memakai id_krs. Proses update menggunakan key lama:
-        {{ old.thn_ajar }}, {{ old.semester }}, {{ old.nim }}, {{ old.kodemk }}.
-    </div>
-
-    <div class="card">
-        <div class="card-header bg-warning">Form Edit KRS</div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('krs.update',
-                old_thn_ajar=old.thn_ajar,
-                old_semester=old.semester,
-                old_nim=old.nim,
-                old_kodemk=old.kodemk) }}">
-
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <label>Tahun Ajar</label>
-                        <input type="number" name="thn_ajar" value="{{ data.thn_ajar }}"
-                               class="form-control" required>
+<body class="bg-soft">
+<div class="app-shell">
+    <div class="container">
+        <div class="page-card card mb-4">
+            <div class="card-body">
+                <div class="page-header">
+                    <div>
+                        <span class="badge rounded-pill bg-primary text-white">Edit</span>
+                        <h1 class="page-title">Edit Data KRS</h1>
+                        <p class="page-subtitle">Perbarui data KRS berdasarkan kunci lama yang tersimpan.</p>
                     </div>
-
-                    <div class="col-md-3 mb-2">
-                        <label>Semester</label>
-                        <select name="semester" class="form-select" required>
-                            <option value="1" {% if data.semester|string == '1' %}selected{% endif %}>1 - Ganjil</option>
-                            <option value="2" {% if data.semester|string == '2' %}selected{% endif %}>2 - Genap</option>
-                            <option value="3" {% if data.semester|string == '3' %}selected{% endif %}>3 - Pendek</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-6 mb-2">
-                        <label>Mahasiswa</label>
-                        <select name="nim" class="form-select" required>
-                            {% for m in mahasiswa %}
-                            <option value="{{ m.nim }}" {% if m.nim == data.nim %}selected{% endif %}>
-                                {{ m.nim }} - {{ m.nama }} - {{ m.jurusan }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <a href="{{ url_for('krs.index') }}" class="btn btn-outline-secondary">Kembali</a>
                 </div>
+            </div>
+        </div>
 
-                <div class="mb-2">
-                    <label>Matakuliah</label>
-                    <select name="kodemk" class="form-select" required>
-                        {% for mk in matakuliah %}
-                            <option value="{{ mk.kodemk }}" {% if mk.kodemk == data.kodemk %}selected{% endif %}>
-                                {{ mk.kodemk }} - {{ mk.namamk }} - {{ mk.sks }} SKS
-                            </option>
-                        {% endfor %}
-                    </select>
+        <div class="card form-card">
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    Data KRS tidak memakai id_krs. Proses update menggunakan key lama: {{ old.thn_ajar }}, {{ old.semester }}, {{ old.nim }}, {{ old.kodemk }}.
                 </div>
-
-                <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ url_for('krs.index') }}" class="btn btn-secondary">Kembali</a>
-            </form>
+                <form method="POST" action="{{ url_for('krs.update', old_thn_ajar=old.thn_ajar, old_semester=old.semester, old_nim=old.nim, old_kodemk=old.kodemk) }}">
+                    <div class="row gx-3 gy-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tahun Ajar</label>
+                            <input type="number" name="thn_ajar" value="{{ data.thn_ajar }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Semester</label>
+                            <select name="semester" class="form-select" required>
+                                <option value="1" {% if data.semester|string == '1' %}selected{% endif %}>1 - Ganjil</option>
+                                <option value="2" {% if data.semester|string == '2' %}selected{% endif %}>2 - Genap</option>
+                                <option value="3" {% if data.semester|string == '3' %}selected{% endif %}>3 - Pendek</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mahasiswa</label>
+                            <select name="nim" class="form-select" required>
+                                {% for m in mahasiswa %}
+                                    <option value="{{ m.nim }}" {% if m.nim == data.nim %}selected{% endif %}>{{ m.nim }} - {{ m.nama }} - {{ m.jurusan }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Matakuliah</label>
+                            <select name="kodemk" class="form-select" required>
+                                {% for mk in matakuliah %}
+                                    <option value="{{ mk.kodemk }}" {% if mk.kodemk == data.kodemk %}selected{% endif %}>{{ mk.kodemk }} - {{ mk.namamk }} - {{ mk.sks }} SKS</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+                            <a href="{{ url_for('krs.index') }}" class="btn btn-outline-secondary">Batal</a>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>
 """

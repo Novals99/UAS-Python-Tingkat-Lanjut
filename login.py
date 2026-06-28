@@ -108,41 +108,46 @@ HTML_LOGIN = """
     <title>Login Sistem Akademik</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="bg-light">
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-1">Login Sistem Akademik</h4>
-                    <p class="mb-0">Flask and MySQL</p>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            {% for msg in messages %}
-                                <div class="alert alert-info">{{ msg }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+<body class="bg-soft">
+<div class="app-shell">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                <div class="card auth-card">
+                    <div class="card-body">
+                        <div class="text-center mb-5">
+                            <p class="badge rounded-pill bg-primary text-white px-4 py-2">Akses Sistem</p>
+                            <h1 class="h3 page-title mt-3">Login Sistem Akademik</h1>
+                            <p class="page-subtitle">Masuk untuk mengelola data KRS, mahasiswa, dan mata kuliah secara cepat dan rapi.</p>
+                        </div>
 
-                    <form method="POST" action="{{ url_for('login.login') }}">
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" name="username" class="form-control"
-                                   placeholder="admin" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control"
-                                   placeholder="admin123" required>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <button type="submit" class="btn btn-primary">Login</button>
-                            <button type="reset" class="btn btn-secondary">Reset</button>
-                        </div>
-                    </form>
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for msg in messages %}
+                                    <div class="alert alert-info">{{ msg }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('login.login') }}">
+                            <div class="mb-4">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control"
+                                       placeholder="admin" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control"
+                                       placeholder="admin123" required>
+                            </div>
+                            <div class="d-grid gap-3 d-sm-flex justify-content-sm-between">
+                                <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                                <button type="reset" class="btn btn-outline-secondary btn-lg">Reset</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,29 +165,29 @@ HTML_HOME = """
     <title>Login Sistem Akademik</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="bg-light">
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-1">Login Sistem Akademik</h4>
-                    <p class="mb-0">Flask and MySQL</p>
-                </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            {% for msg in messages %}
-                                <div class="alert alert-info">{{ msg }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+<body class="bg-soft">
+<div class="app-shell">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-6 col-lg-7 col-md-8">
+                <div class="card welcome-card">
+                    <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+                        <div>
+                            {% with messages = get_flashed_messages() %}
+                                {% if messages %}
+                                    {% for msg in messages %}
+                                        <div class="alert alert-info">{{ msg }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
 
-                    <div class="alert alert-success">
-                        Anda sudah login sebagai <strong>{{ username }}</strong>.
+                            <h1 class="h3 page-title">Selamat Datang</h1>
+                            <p class="page-subtitle">Anda sudah login sebagai <strong>{{ username }}</strong>. Silakan gunakan menu untuk mengelola data akademik.</p>
+                        </div>
+                        <a href="{{ url_for('login.logout') }}" class="btn btn-danger btn-lg">Logout</a>
                     </div>
-                    <a href="{{ url_for('login.logout') }}" class="btn btn-danger">Logout</a>
                 </div>
             </div>
         </div>

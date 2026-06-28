@@ -230,115 +230,122 @@ HTML_INDEX = """
     <title>Form Data Mata Kuliah</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="bg-light">
-<div class="container mt-4 mb-5">
-    <nav class="nav nav-pills mb-4">
-        <a class="nav-link" href="{{ url_for('krs.index') }}">KRS</a>
-        <a class="nav-link" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
-        <a class="nav-link" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
-        <a class="nav-link text-danger ms-auto" href="{{ url_for('login.logout') }}">Logout</a>
-    </nav>
-    <h3>Form Data Mata Kuliah - Flask dan MySQL</h3>
-    <p class="text-muted">
-        CRUD tabel Matakuliah menggunakan primary key Kode MK.
-    </p>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for msg in messages %}
-                <div class="alert alert-info">{{ msg }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div class="card mb-3">
-        <div class="card-header bg-primary text-white">Input Data Mata Kuliah</div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('matakuliah.simpan') }}">
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <label>Kode MK</label>
-                        <input type="text" name="kodemk" class="form-control"
-                               placeholder="MK001" required>
+<body class="bg-soft">
+<div class="app-shell">
+    <div class="container">
+        <div class="page-card card mb-4">
+            <div class="card-body">
+                <div class="page-header">
+                    <div>
+                        <span class="badge rounded-pill bg-primary text-white">Mata Kuliah</span>
+                        <h1 class="page-title">Data Mata Kuliah</h1>
+                        <p class="page-subtitle">CRUD Matakuliah lengkap dengan pencarian dan laporan yang mudah digunakan.</p>
                     </div>
-                    <div class="col-md-4 mb-2">
-                        <label>Nama Mata Kuliah</label>
-                        <input type="text" name="namamk" class="form-control"
-                               placeholder="Nama Mata Kuliah" required>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <label>SKS</label>
-                        <input type="number" name="sks" class="form-control"
-                               placeholder="3" required>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label>Biaya</label>
-                        <input type="text" name="biaya" class="form-control"
-                               placeholder="350000" required>
-                    </div>
+                    <a href="{{ url_for('login.logout') }}" class="btn btn-outline-danger">Logout</a>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-12 mb-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary me-2">Simpan</button>
-                        <a href="{{ url_for('matakuliah.index') }}" class="btn btn-secondary">Reset</a>
-                    </div>
+                <div class="nav nav-pills mt-4">
+                    <a class="nav-link {% if request.path.startswith('/krs') %}active{% endif %}" href="{{ url_for('krs.index') }}">KRS</a>
+                    <a class="nav-link {% if request.path.startswith('/mahasiswa') %}active{% endif %}" href="{{ url_for('mahasiswa.index') }}">Mahasiswa</a>
+                    <a class="nav-link {% if request.path.startswith('/matakuliah') %}active{% endif %}" href="{{ url_for('matakuliah.index') }}">Mata Kuliah</a>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <form method="GET" action="{{ url_for('matakuliah.index') }}" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="keyword" class="form-control"
-                   placeholder="Cari Kode MK, nama MK, SKS, atau biaya"
-                   value="{{ keyword }}">
-            <button class="btn btn-success" type="submit">Cari</button>
-            <a href="{{ url_for('matakuliah.index') }}" class="btn btn-outline-secondary">Tampil Semua</a>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-info">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card form-card mb-4">
+            <div class="card-header">Input Data Mata Kuliah</div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('matakuliah.simpan') }}">
+                    <div class="row gx-3 gy-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Kode MK</label>
+                            <input type="text" name="kodemk" class="form-control" placeholder="MK001" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nama Mata Kuliah</label>
+                            <input type="text" name="namamk" class="form-control" placeholder="Nama Mata Kuliah" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">SKS</label>
+                            <input type="number" name="sks" class="form-control" placeholder="3" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Biaya</label>
+                            <input type="text" name="biaya" class="form-control" placeholder="350000" required>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+                            <a href="{{ url_for('matakuliah.index') }}" class="btn btn-outline-secondary">Reset</a>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
 
-    <div class="mb-3">
-        <a href="{{ url_for('matakuliah.cetak_pdf', keyword=keyword) }}" class="btn btn-danger btn-sm">Cetak PDF</a>
-        <a href="{{ url_for('matakuliah.cetak_excel', keyword=keyword) }}" class="btn btn-success btn-sm">Cetak Excel</a>
-        <a href="{{ url_for('matakuliah.cetak_csv', keyword=keyword) }}" class="btn btn-info btn-sm">Cetak CSV</a>
-    </div>
+        <div class="card search-card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('matakuliah.index') }}" class="row gx-3 gy-3 align-items-center">
+                    <div class="col-md-8">
+                        <input type="text" name="keyword" class="form-control" placeholder="Cari Kode MK, nama MK, SKS, atau biaya" value="{{ keyword }}">
+                    </div>
+                    <div class="col-md-4 d-flex flex-wrap gap-2">
+                        <button class="btn btn-success flex-grow-1" type="submit">Cari</button>
+                        <a href="{{ url_for('matakuliah.index') }}" class="btn btn-outline-secondary flex-grow-1">Tampil Semua</a>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-    <div class="card mb-3">
-        <div class="card-header bg-dark text-white">Daftar Mata Kuliah</div>
-        <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>No</th>
-                        <th>Kode MK</th>
-                        <th>Nama Mata Kuliah</th>
-                        <th>SKS</th>
-                        <th>Biaya</th>
-                        <th width="160">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in data %}
-                    <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ row.kodemk }}</td>
-                        <td>{{ row.namamk }}</td>
-                        <td>{{ row.sks }}</td>
-                        <td>Rp {{ "{:,.0f}".format(row.biaya or 0) }}</td>
-                        <td>
-                            <a href="{{ url_for('matakuliah.edit', kodemk=row.kodemk) }}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="{{ url_for('matakuliah.hapus', kodemk=row.kodemk) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus matakuliah ini?')">Hapus</a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center">Data mata kuliah belum tersedia</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="mb-4 d-flex flex-wrap gap-2">
+            <a href="{{ url_for('matakuliah.cetak_pdf', keyword=keyword) }}" class="btn btn-danger">Cetak PDF</a>
+            <a href="{{ url_for('matakuliah.cetak_excel', keyword=keyword) }}" class="btn btn-success">Cetak Excel</a>
+            <a href="{{ url_for('matakuliah.cetak_csv', keyword=keyword) }}" class="btn btn-outline-secondary">Cetak CSV</a>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-header">Daftar Mata Kuliah</div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>No</th>
+                            <th>Kode MK</th>
+                            <th>Nama Mata Kuliah</th>
+                            <th>SKS</th>
+                            <th>Biaya</th>
+                            <th width="160">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ row.kodemk }}</td>
+                            <td>{{ row.namamk }}</td>
+                            <td>{{ row.sks }}</td>
+                            <td>Rp {{ "{:,.0f}".format(row.biaya or 0) }}</td>
+                            <td class="d-flex flex-wrap gap-2">
+                                <a href="{{ url_for('matakuliah.edit', kodemk=row.kodemk) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{{ url_for('matakuliah.hapus', kodemk=row.kodemk) }}" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus matakuliah ini?')">Hapus</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">Data mata kuliah belum tersedia</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -358,45 +365,53 @@ HTML_EDIT = """
     <title>Edit Mata Kuliah</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="bg-light">
-<div class="container mt-4">
-    <h3>Edit Data Mata Kuliah</h3>
-
-    <div class="alert alert-warning">
-        Data matakuliah diperbarui berdasarkan kode MK lama: {{ old.kodemk }}.
-    </div>
-
-    <div class="card">
-        <div class="card-header bg-warning">Form Edit Mata Kuliah</div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('matakuliah.update', old_kodemk=old.kodemk) }}">
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <label>Kode MK</label>
-                        <input type="text" name="kodemk" value="{{ data.kodemk }}"
-                               class="form-control" required>
+<body class="bg-soft">
+<div class="app-shell">
+    <div class="container">
+        <div class="page-card card mb-4">
+            <div class="card-body">
+                <div class="page-header">
+                    <div>
+                        <span class="badge rounded-pill bg-primary text-white">Edit</span>
+                        <h1 class="page-title">Edit Mata Kuliah</h1>
+                        <p class="page-subtitle">Perbarui kode dan informasi mata kuliah dengan tampilan yang lebih modern.</p>
                     </div>
-                    <div class="col-md-4 mb-2">
-                        <label>Nama Mata Kuliah</label>
-                        <input type="text" name="namamk" value="{{ data.namamk }}"
-                               class="form-control" required>
-                    </div>
-                    <div class="col-md-2 mb-2">
-                        <label>SKS</label>
-                        <input type="number" name="sks" value="{{ data.sks }}"
-                               class="form-control" required>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <label>Biaya</label>
-                        <input type="text" name="biaya" value="{{ data.biaya }}"
-                               class="form-control" required>
-                    </div>
+                    <a href="{{ url_for('matakuliah.index') }}" class="btn btn-outline-secondary">Kembali</a>
                 </div>
-
-                <button type="submit" class="btn btn-primary">Update</button>
-                <a href="{{ url_for('matakuliah.index') }}" class="btn btn-secondary">Kembali</a>
-            </form>
+            </div>
+        </div>
+        <div class="card form-card">
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    Data matakuliah diperbarui berdasarkan kode MK lama: {{ old.kodemk }}.
+                </div>
+                <form method="POST" action="{{ url_for('matakuliah.update', old_kodemk=old.kodemk) }}">
+                    <div class="row gx-3 gy-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Kode MK</label>
+                            <input type="text" name="kodemk" value="{{ data.kodemk }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nama Mata Kuliah</label>
+                            <input type="text" name="namamk" value="{{ data.namamk }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">SKS</label>
+                            <input type="number" name="sks" value="{{ data.sks }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Biaya</label>
+                            <input type="text" name="biaya" value="{{ data.biaya }}" class="form-control" required>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+                            <a href="{{ url_for('matakuliah.index') }}" class="btn btn-outline-secondary">Batal</a>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

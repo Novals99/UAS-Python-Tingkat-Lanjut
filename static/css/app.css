@@ -1,0 +1,248 @@
+:root {
+  color-scheme: light;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: #0f172a;
+  background: #eff2f7;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --border: #e2e8f0;
+  --primary: #0f4cbb;
+  --primary-hover: #0d3f9b;
+  --muted: #64748b;
+  --danger: #dc2626;
+  --success: #16a34a;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(15, 76, 187, 0.08),
+      transparent 22%
+    ),
+    linear-gradient(180deg, #f8fbfe 0%, #eff2f7 100%);
+  color: var(--color, #0f172a);
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 3rem 0 4rem;
+}
+
+.card {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 1.75rem;
+  background: var(--surface);
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: none;
+  padding-top: 1.5rem;
+  padding-bottom: 0.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.auth-card,
+.welcome-card,
+.page-card,
+.form-card,
+.table-card,
+.search-card {
+  border-radius: 1.75rem;
+}
+
+.page-card .card-body,
+.auth-card .card-body,
+.welcome-card .card-body,
+.form-card .card-body,
+.table-card .card-body,
+.search-card .card-body {
+  padding: 1.7rem;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  margin-bottom: 0.35rem;
+  font-size: clamp(1.65rem, 1.55rem + 0.3vw, 2rem);
+  font-weight: 700;
+}
+
+.page-subtitle {
+  color: var(--muted);
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.7;
+}
+
+.nav-pills .nav-link {
+  color: #334155;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  padding: 0.8rem 1.15rem;
+  margin-right: 0.55rem;
+  transition: all 0.2s ease;
+}
+
+.nav-pills .nav-link:hover {
+  color: #0f172a;
+  background: rgba(15, 76, 187, 0.05);
+}
+
+.nav-pills .nav-link.active {
+  color: #ffffff;
+  background: var(--primary);
+  box-shadow: 0 12px 25px rgba(15, 76, 187, 0.15);
+}
+
+.form-control,
+.form-select {
+  border-radius: 1rem;
+  border: 1px solid #cbd5e1;
+  background: var(--surface-soft);
+  padding: 1rem 1rem;
+  box-shadow: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(15, 76, 187, 0.12);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #334155;
+}
+
+.input-group .form-control,
+.input-group .form-select {
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+.input-group .btn {
+  border-radius: 1rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 14px 30px rgba(15, 76, 187, 0.18);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn-outline-secondary {
+  color: #334155;
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.btn-outline-secondary:hover {
+  background: #f8fafc;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.btn-success {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.btn-success:hover {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.alert {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow: 0 14px 25px rgba(15, 23, 42, 0.06);
+}
+
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+}
+
+.table thead th {
+  border-bottom: 1px solid #cbd5e1;
+}
+
+.table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.table th,
+.table td {
+  vertical-align: middle;
+  border-top: none;
+  padding: 1rem 1rem;
+}
+
+.table-responsive {
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.table .btn {
+  min-width: 82px;
+}
+
+textarea,
+select,
+input {
+  font-family: inherit;
+}
+
+@media (max-width: 767px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-title {
+    font-size: 1.55rem;
+  }
+}
